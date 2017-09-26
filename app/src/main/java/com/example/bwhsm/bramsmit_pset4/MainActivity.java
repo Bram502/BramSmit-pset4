@@ -6,31 +6,41 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     String inputText;
-    TextView txtView;
+    ArrayList<Item> itemArray = new ArrayList<Item>();
+
     DBHandler dbHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        txtView = (TextView) findViewById(R.id.textView);
-        dbHandler = new DBHandler(this,null,null,1);
+        dbHandler = new DBHandler(this,null,null,2);
+        getItemList();
 
         findViewById(R.id.addButton).setOnClickListener(new addButtonClicked());
-//        findViewById(R.id.deleteButton).setOnClickListener(new deleteButtonClicked());
+        loadListView();
     }
 
-    public void printDatabase(){
-        String dbString = dbHandler.databaseToString();
-        txtView.setText(dbString);
+    private void loadListView() {
+        ArrayAdapter arrayAdapter = new CustomAdapter(this,itemArray);
+        ListView lvItems = (ListView) findViewById(R.id.taskList);
+    }
+
+    private void getItemList() {
+        itemArray = dbHandler.databaseToArray();
     }
 
     private void showDialog() {
@@ -52,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
                 dialog.cancel();
             }
         });
-
         builder.show();
     }
 
@@ -62,18 +71,10 @@ public class MainActivity extends AppCompatActivity {
             showDialog();
             Item item = new Item(inputText);
             dbHandler.addItem(item);
-            printDatabase();
         }
     }
 
-//
-//    private class deleteButtonClicked implements View.OnClickListener {
-//        @Override
-//        public void onClick(View view) {
-//            dbHandler.deleteItem(inputText.getText().toString());
-//            printDatabase();
-//        }
-//    }
+
 
 
 

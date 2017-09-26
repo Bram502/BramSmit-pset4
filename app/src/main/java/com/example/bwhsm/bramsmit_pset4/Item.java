@@ -7,27 +7,28 @@ package com.example.bwhsm.bramsmit_pset4;
 public class Item {
     private int id;
     private String title;
+    private Boolean completed = false;
 
-    public Item() {
-    }
+    public Item() {}
 
     public Item(String title) {
         this.title = title;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public String getTitle() {
+        return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
     }
 
-    public int getId() {
-        return id;
+    public Boolean getCompleted() {
+        return completed;
     }
 
-    public String getTitle() {
-        return title;
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 }
+
