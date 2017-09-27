@@ -47,23 +47,36 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         lvItems.setOnItemClickListener(
-                new AdapterView.OnItemClickListener(){
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Item item = (Item) parent.getItemAtPosition(position);
-                        if (item.getCompleted()) {
-                            item.setCompleted(false);
-                            toBeDeleted.remove(item);
-                        } else {
-                            item.setCompleted(true);
-                            toBeDeleted.add(item);
-                        }
-                        dbHandler.updateItem(item);
-                        getItemList();
-                        ((CustomAdapter) lvItems.getAdapter()).notifyDataSetChanged();
+            new AdapterView.OnItemClickListener(){
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Item item = (Item) parent.getItemAtPosition(position);
+                    if (item.getCompleted()) {
+                        item.setCompleted(false);
+                        toBeDeleted.remove(item);
+                    } else {
+                        item.setCompleted(true);
+                        toBeDeleted.add(item);
                     }
+                    dbHandler.updateItem(item);
+                    getItemList();
+                    ((CustomAdapter) lvItems.getAdapter()).notifyDataSetChanged();
                 }
+            }
         );
+        lvItems.setOnItemLongClickListener(
+            new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    Item item = (Item) parent.getItemAtPosition(position);
+                    ArrayList<Item> tempItemList = new ArrayList<Item>();
+                    tempItemList.add(item);
+                    dbHandler.deleteItems(tempItemList);
+                    getItemList();
+                    loadListView();
+                    return true;
+                }
+        });
 
     }
 
