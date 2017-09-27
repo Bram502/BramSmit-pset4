@@ -57,11 +57,28 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     // Delete item from database
-    public void deleteItem(String title) {
+    public void deleteItems(ArrayList<Item> toBeDeleted) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL(" DELETE FROM " + TABLE_TASKS + " WHERE " + COLUMN_TITLE + "=\"" + title + "\";");
+        for (int i=0;i<toBeDeleted.size();i++) {
+            Item currentItem = toBeDeleted.get(i);
+            db.delete(TABLE_TASKS, " " + COLUMN_ID + " = ? ", new String[] {String.valueOf(currentItem.getId())});
+        }
+        db.close();
     }
 
+    public void updateItem(Item item) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TITLE, item.getTitle());
+        int completed;
+        if (!item.getCompleted()) {
+            completed = 0;
+        } else {
+            completed = 1;
+        }
+        values.put(COLUMN_COMPLETED, completed);
+        db.update(TABLE_TASKS, values, COLUMN_ID + " = ? ", new String[] { String.valueOf(item.getId())});
+    }
     // return database as Array list
     public ArrayList<Item> databaseToArray() {
         ArrayList<Item> dbArray = new ArrayList<Item>();
@@ -75,9 +92,10 @@ public class DBHandler extends SQLiteOpenHelper {
         while (!c.isAfterLast()) {
             Item newItem = new Item();
             if (c.getString(c.getColumnIndex(COLUMN_TITLE)) != null) {
-                newItem.setTitle(c.getString(c.getColumnIndex("title")));
+                newItem.setTitle(c.getString(c.getColumnIndex(COLUMN_TITLE)));
             }
 
+            newItem.setId(c.getInt(c.getColumnIndex(COLUMN_ID)));
             int completed = c.getInt(c.getColumnIndex(COLUMN_COMPLETED));
             if (completed == 0) {
                 newItem.setCompleted(false);

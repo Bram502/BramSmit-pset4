@@ -2,6 +2,7 @@ package com.example.bwhsm.bramsmit_pset4;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -18,64 +19,79 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    String inputText;
     ArrayList<Item> itemArray = new ArrayList<Item>();
-
+    ArrayList<Item> toBeDeleted = new ArrayList<Item>();
     DBHandler dbHandler;
+    ListView lvItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dbHandler = new DBHandler(this,null,null,2);
+
+        dbHandler = new DBHandler(this, null, null, 2);
         getItemList();
 
-        findViewById(R.id.addButton).setOnClickListener(new addButtonClicked());
+        findViewById(R.id.addButton).setOnClickListener(new AddButtonClicked());
+        findViewById(R.id.deleteButton).setOnClickListener(new DeleteButtonClicked());
         loadListView();
     }
 
     private void loadListView() {
-        ArrayAdapter arrayAdapter = new CustomAdapter(this,itemArray);
-        ListView lvItems = (ListView) findViewById(R.id.taskList);
+        ArrayAdapter arrayAdapter = new CustomAdapter(this, itemArray);
+        lvItems = (ListView) findViewById(R.id.taskList);
+        lvItems.setAdapter(arrayAdapter);
+        for (int i=0;i<itemArray.size();i++) {
+            if (itemArray.get(i).getCompleted()) {
+                toBeDeleted.add(itemArray.get(i));
+            }
+        }
+        lvItems.setOnItemClickListener(
+                new AdapterView.OnItemClickListener(){
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Item item = (Item) parent.getItemAtPosition(position);
+                        if (item.getCompleted()) {
+                            item.setCompleted(false);
+                            toBeDeleted.remove(item);
+                        } else {
+                            item.setCompleted(true);
+                            toBeDeleted.add(item);
+                        }
+                        dbHandler.updateItem(item);
+                        getItemList();
+                        ((CustomAdapter) lvItems.getAdapter()).notifyDataSetChanged();
+                    }
+                }
+        );
+
     }
 
     private void getItemList() {
         itemArray = dbHandler.databaseToArray();
     }
 
-    private void showDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Task");
 
-        final EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        builder.setView(input);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                inputText = input.getText().toString();
-            }
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        builder.show();
-    }
-
-    private class addButtonClicked implements View.OnClickListener {
+    private class AddButtonClicked implements View.OnClickListener {
         @Override
         public void onClick(View view) {
-            showDialog();
-            Item item = new Item(inputText);
-            dbHandler.addItem(item);
+            goToInput();
         }
     }
 
+    private class DeleteButtonClicked implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            dbHandler.deleteItems(toBeDeleted);
+            getItemList();
+            loadListView();
+        }
+    }
 
-
-
+    private void goToInput() {
+        Intent inputIntent = new Intent(this, InputActivity.class);
+        this.startActivity(inputIntent);
+        finish();
+    }
 
 }
